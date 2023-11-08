@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medicine Recommendation System</title>
+    <!-- Add your CSS styling and external stylesheets here -->
+</head>
+<body>
+    <h1>Medicine Recommendation System</h1>
+    
+    <!-- User Input Form -->
+    <form id="user-form">
+        <h2>Select Symptoms:</h2>
+        <!-- Generate checkboxes for symptoms based on the data from your CSV file -->
+        {% for symptom in symptoms_and_medicines.keys() %}
+        <input type="checkbox" id="{{ symptom }}" name="symptoms" value="{{ symptom }}">
+        <label for="{{ symptom }}">{{ symptom }}</label>
+        {% endfor %}
+        <br>
+        <br>
+        <button type="button" onclick="getRecommendations()">Get Recommendations</button>
+    </form>
+    
+    <!-- Recommendations Section -->
+    <h2>Recommended Medicines</h2>
+    <ul id="recommendations">
+        <!-- Recommendations will be displayed here -->
+    </ul>
+    
+    <script>
+        function getRecommendations() {
+            const selectedSymptoms = Array.from(document.querySelectorAll('input[name="symptoms"]:checked')).map(checkbox => checkbox.value);
+
+            // Create a data object to send to the API
+            const data = {
+                symptoms: selectedSymptoms
+            };
+
+            // Make an HTTP POST request to your Python API endpoint
+            fetch('/api/recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const recommendationsSection = document.getElementById("recommendations");
+                recommendationsSection.innerHTML = ""; // Clear previous recommendations
+
+                if (data.recommended_medicine.length === 0) {
+                    recommendationsSection.innerHTML = "No recommendations available.";
+                } else {
+                    data.recommended_medicine.forEach(medicine => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = medicine;
+                        recommendationsSection.appendChild(listItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
